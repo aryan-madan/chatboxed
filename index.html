@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>chatboxed</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/animadio@2.5.4/dist/animadio.min.js"></script>
+    <style>
+       body {
+           font-family: 'Lora', serif;
+           background-color: #F5F5F5;
+           display: flex;
+           justify-content: center;
+           align-items: center;
+           min-height: 100vh;
+           margin: 0;
+           transition: background-color 0.3s ease;
+           overflow-y: scroll;
+       }
+
+       .container {
+           max-width: 600px;
+           width: 100%;
+           border-radius: 8px;
+           padding: 20px;
+           transition: background-color 0.3s ease;
+           margin: 0 auto;
+       }
+
+       .input-area {
+           display: flex;
+           background-color: #FFFFFF;
+           padding: 20px;
+           border-radius: 8px;
+           box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+       }
+
+       #input-box {
+           flex-grow: 1;
+           padding: 10px;
+           border: 1px solid #CCD0D5;
+           border-radius: 4px;
+           font-size: 16px;
+           transition: border-color 0.3s ease;
+           background-color: #F5F5F5;
+       }
+
+       #input-box:focus {
+           border-color: #4CAF50;
+           outline: none;
+       }
+
+       #submit-btn {
+           height: auto;
+           margin-left: 10px;
+           background-color: #4CAF50;
+           color: #FFFFFF;
+           border: none;
+           border-radius: 4px;
+           padding: 10px 20px;
+           font-size: 16px;
+           cursor: pointer;
+           transition: background-color 0.3s ease;
+       }
+
+       #submit-btn:hover {
+           background-color: #388E3C;
+       }
+
+       #chat-history {
+           max-height: 600px;
+           overflow-y: scroll;
+           display: flex;
+           flex-direction: column;
+           gap: 10px;
+           padding-right: 10px;
+       }
+
+       .user-message {
+           background-color: #FFFFFF;
+           color: #000000;
+           padding: 10px;
+           border-radius: 10px;
+           align-self: flex-end;
+           max-width: fit-content;
+           word-wrap: break-word;
+           max-width: 70%;
+           animation: slide-in-right 0.3s ease-out;
+           transition: background-color 0.3s ease;
+       }
+
+       .bot-message {
+           background-color: #4CAF50;
+           color: #FFFFFF;
+           padding: 10px;
+           border-radius: 10px;
+           align-self: flex-start;
+           max-width: fit-content;
+           animation: slide-in-left 0.3s ease-out;
+           transition: background-color 0.3s ease;
+           word-wrap: break-word;
+           flex-shrink: 0;
+       }
+
+       .dark-mode {
+           background-color: #333333;
+           color: #FFFFFF;
+       }
+
+       .dark-mode .input-area {
+           background-color: #444444;
+       }
+
+       .dark-mode .user-message {
+           background-color: #555555;
+       }
+
+       .dark-mode .bot-message {
+           background-color: #4CAF50;
+       }
+
+       .dark-mode #input-box {
+           background-color: #555555;
+           color: #FFFFFF;
+           border-color: #777777;
+       }
+
+       .dark-mode #input-box:focus {
+           border-color: #4CAF50;
+       }
+
+       .dark-mode .settings-panel {
+           background-color: #444444;
+           color: #FFFFFF;
+       }
+
+       .dark-mode #prompts-list {
+           background-color: #444444;
+           color: #FFFFFF;
+       }
+
+       .dark-mode .prompts-dropdown li:hover {
+           background-color: #333333;
+       }
+
+       @keyframes slide-in-right {
+           0% {
+               transform: translateX(100%);
+               opacity: 0;
+           }
+
+           100% {
+               transform: translateX(0);
+               opacity: 1;
+           }
+       }
+
+       @keyframes slide-in-left {
+           0% {
+               transform: translateX(-100%);
+               opacity: 0;
+           }
+
+           100% {
+               transform: translateX(0);
+               opacity: 1;
+           }
+       }
+
+       .settings-panel {
+           position: fixed;
+           top: 20px;
+           right: 20px;
+           background-color: #FFFFFF;
+           box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+           border-radius: 8px;
+           padding: 20px;
+           z-index: 1;
+           transition: transform 0.3s ease-in-out;
+           transform: translateX(100%);
+       }
+
+       .settings-panel.open {
+           transform: translateX(0);
+       }
+
+       .settings-panel h3 {
+           margin-top: 0;
+       }
+
+       .settings-panel label {
+           display: flex;
+           align-items: center;
+           margin-bottom: 10px;
+       }
+
+       .settings-panel input[type="checkbox"] {
+           margin-right: 10px;
+       }
+
+       .typewriter-animation {
+           overflow: hidden;
+           animation: typing 2s steps(30, end) forwards;
+       }
+
+       @keyframes typing {
+           from {
+               width: 0;
+           }
+
+           to {
+               width: 100%;
+           }
+       }
+
+       .headingh1 {
+           font-size: 30px;
+           font-weight: bold;
+       }
+
+       .heading {
+           width: 70%;
+       }
+
+       #chat-history::-webkit-scrollbar {
+           width: 10px;
+       }
+
+       #chat-history::-webkit-scrollbar-track {
+           background: none;
+           padding-bottom: 10px;
+       }
+
+       #chat-history::-webkit-scrollbar-thumb {
+           background: #4CAF50;
+           border-radius: 5px;
+       }
+
+       #chat-history::-webkit-scrollbar-thumb:horizontal {
+           display: none;
+       }
+
+       .prompts-dropdown {
+           position: relative;
+           display: inline-block;
+       }
+
+       #prompts-dropdown-toggle {
+           margin-left: 10px;
+           background-color: #4CAF50;
+           color: #FFFFFF;
+           border: none;
+           border-radius: 4px;
+           padding: 10px 20px;
+           font-size: 16px;
+           cursor: pointer;
+           transition: background-color 0.3s ease;
+           display: inline-block;
+           height: 46px;
+           line-height: 24px;
+       }
+
+       #prompts-dropdown-toggle:hover {
+           background-color: #388E3C;
+       }
+
+       #prompts-list {
+           display: none;
+           position: absolute;
+           background-color: #FFFFFF;
+           box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+           border-radius: 8px;
+           padding: 5px 0;
+           margin-top: 5px;
+           right: 0;
+           z-index: 1;
+           overflow-y: scroll;
+           height: 300px;
+       }
+
+       .prompts-dropdown.open #prompts-list {
+           display: block;
+       }
+
+       .prompts-dropdown ul {
+           list-style-type: none;
+           padding: 0;
+           margin: 0;
+       }
+
+       .prompts-dropdown li {
+           padding: 5px 10px;
+           border-radius: 4px;
+           cursor: pointer;
+           transition: background-color 0.3s ease;
+       }
+
+       .prompts-dropdown li:hover {
+           background-color: #F0F0F0;
+       }
+
+       @media screen and (max-width: 960px) {
+           .input-area {
+               flex-direction: column;
+           }
+
+           #prompts-dropdown-toggle {
+               width: 100%;
+               margin-left: 0px;
+               margin-top: 10px;
+           }
+
+           #submit-btn {
+               margin-top: 10px;
+               margin-left: 0px;
+               width: 100%;
+           }
+
+           #chat-history {
+               max-height: 300px;
+           }
+
+           .heading {
+               width: 90%;
+           }
+
+           #prompts-list {
+               height: 100px;
+           }
+       }
+    </style>
+</head>
+
+<body>
+    <div class=heading>
+        <h1 class=headingh1 style="text-align: center; margin-bottom: 20px;">chatboxed</h1>
+        <div class="container">
+            <div id="chat-history"></div>
+            <div class="input-area">
+                <input type="text" id="input-box" placeholder="Type your message...">
+                <button id="submit-btn">Send</button>
+                <!-- Prompts Dropdown -->
+                <div class="prompts-dropdown">
+                    <button id="prompts-dropdown-toggle">Prompts ▼</button>
+                    <ul id="prompts-list"></ul>
+                </div>
+                <!-- End of Prompts Dropdown -->
+            </div>
+            <div class="settings-panel">
+                <h3>Settings</h3>
+                <label>
+                    <input type="checkbox" id="dark-mode-toggle">
+                    Dark Mode
+                </label>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputBox = document.getElementById('input-box');
+            const submitBtn = document.getElementById('submit-btn');
+            const chatHistory = document.getElementById('chat-history');
+            const darkModeToggle = document.getElementById('dark-mode-toggle');
+            const body = document.body;
+            const container = document.querySelector('.container');
+            const settingsPanel = document.querySelector('.settings-panel');
+            const promptsDropdownToggle = document.getElementById('prompts-dropdown-toggle');
+            const promptsList = document.getElementById('prompts-list');
+
+            const prompts = {
+                'what is phishing?': 'Phishing is a cyber attack method used by hackers to trick individuals into revealing sensitive information, such as passwords, credit card numbers, or personal details, by impersonating trustworthy entities or creating fake websites or emails.',
+                'how to create a strong password?': 'To create a strong password, you should use a combination of letters, numbers, and special characters, avoid using easily guessable information such as your name or birthdate, and refrain from using the same password for multiple accounts. Consider using a password manager to generate and store complex passwords securely.',
+                'what is malware?': 'Malware is malicious software designed to disrupt, damage, or gain unauthorized access to computer systems or networks. It includes various types of threats such as viruses, worms, Trojans, ransomware, and spyware, which can infect devices and compromise data security.',
+                'how to protect against identity theft?': 'To protect against identity theft, you should safeguard your personal information, such as social security number, financial details, and passwords, by using secure passwords, enabling two-factor authentication, monitoring your accounts regularly for suspicious activity, and being cautious of sharing sensitive information online or with unknown entities.',
+                'what is encryption?': 'Encryption is the process of encoding data or information in such a way that only authorized parties can access and decipher it. It involves using algorithms to convert plaintext into ciphertext, which can be decrypted using a secret key or password, providing confidentiality and security for sensitive data.',
+                'how to secure my Wi-Fi network?': 'To secure your Wi-Fi network, you should change the default SSID and password, enable network encryption such as WPA2 or WPA3, disable remote management access, use a firewall to filter incoming and outgoing traffic, and regularly update your router firmware to patch security vulnerabilities.',
+                'what is social engineering?': 'Social engineering is a technique used by cyber attackers to manipulate individuals into divulging confidential information or performing actions that compromise security. It often involves psychological manipulation, deception, or impersonation to exploit human vulnerabilities and gain unauthorized access to systems or data.',
+                'how to detect and avoid online scams?': 'To detect and avoid online scams, you should be cautious of unsolicited emails, messages, or requests for personal or financial information, verify the legitimacy of websites and businesses before making purchases or transactions, avoid clicking on suspicious links or attachments, and stay informed about common scam tactics and warning signs.',
+                'what is cybersecurity?': 'Cybersecurity refers to the practice of protecting computer systems, networks, and data from cyber threats, attacks, and unauthorized access. It involves implementing security measures, protocols, and technologies to safeguard digital assets and mitigate risks posed by malicious actors and vulnerabilities.',
+                'how to stay safe while using public Wi-Fi?': 'To stay safe while using public Wi-Fi, you should avoid accessing sensitive information or conducting financial transactions on unsecured networks, use a virtual private network (VPN) to encrypt your internet traffic and protect your privacy, enable firewall and antivirus protection on your devices, and avoid connecting to suspicious or untrusted networks.',
+                'what is two-factor authentication?': 'Two-factor authentication (2FA) is a security mechanism that requires users to provide two different authentication factors, typically something they know (e.g., password) and something they have (e.g., smartphone or security token), to verify their identity and access a system or account. It adds an extra layer of security and helps prevent unauthorized access even if one factor is compromised.',
+                'what is ransomware?': 'Ransomware is a type of malware that encrypts files or locks computer systems and demands a ransom payment from the victim in exchange for restoring access to their data or device. It can spread through malicious email attachments, infected websites, or software vulnerabilities, posing a significant threat to individuals and organizations.',
+                'how to protect children online?': 'To protect children online, you should establish clear rules and guidelines for internet usage, educate them about online risks and safety practices, use parental control tools to filter and monitor their online activities, encourage open communication and trust, and supervise their online interactions and content consumption.',
+                'what is data privacy?': 'Data privacy refers to the protection of personal information and sensitive data from unauthorized access, use, or disclosure. It encompasses various principles and regulations aimed at ensuring individuals have control over their data and that organizations handle it responsibly and securely, respecting user privacy rights and preferences.',
+                'what is a VPN and how does it work?': 'A Virtual Private Network (VPN) is a technology that creates a secure and encrypted connection over the internet, allowing users to access the web privately and securely. It works by routing your internet traffic through a remote server and encrypting it, masking your IP address and location, and protecting your data from interception or surveillance by third parties.',
+                'what are some common cybersecurity threats?': 'Common cybersecurity threats include malware infections, phishing attacks, ransomware, data breaches, identity theft, social engineering scams, insecure Wi-Fi networks, and unpatched software vulnerabilities. These threats pose risks to individuals, businesses, and organizations, compromising data security, privacy, and financial resources.',
+                'how to protect personal information online?': 'To protect personal information online, you should be cautious of sharing sensitive data on social media or public websites, use privacy settings and security features to control who can access your information, avoid oversharing personal details or photos, use strong and unique passwords for online accounts, and regularly review and update your privacy settings and permissions.',
+                'what is endpoint security?': 'Endpoint security refers to the protection of individual devices or endpoints, such as computers, smartphones, and tablets, from cyber threats and attacks. It involves deploying security solutions, such as antivirus software, firewalls, and intrusion detection systems, to detect, prevent, and remediate security incidents and vulnerabilities on endpoints connected to a network.',
+                'how to recognize and report cyberbullying?': 'To recognize and report cyberbullying, you should be aware of signs such as sudden changes in behavior, withdrawal from social activities, or reluctance to use devices or social media, and encourage open communication with children or individuals who may be experiencing cyberbullying. You can report cyberbullying incidents to relevant authorities, internet service providers, or social media platforms for investigation and intervention.',
+                'what is the role of encryption in digital security?': 'Encryption plays a critical role in digital security by providing confidentiality, integrity, and authentication for sensitive data and communications. It ensures that information remains secure and private during storage, transmission, and processing by converting plaintext into ciphertext using cryptographic algorithms and keys, making it unreadable to unauthorized users or attackers.',
+                'how to secure IoT devices at home?': 'To secure Internet of Things (IoT) devices at home, you should change default passwords, update firmware regularly to patch security vulnerabilities, segment your network to isolate IoT devices from critical systems, use strong encryption for data transmission, disable unnecessary features or services, and monitor device activity for suspicious behavior or unauthorized access.',
+                'what is a firewall and how does it work?': 'A firewall is a network security device or software application that monitors and controls incoming and outgoing network traffic based on predetermined security rules or policies. It acts as a barrier between trusted internal networks and untrusted external networks, filtering traffic to prevent unauthorized access, malicious attacks, and data breaches.',
+                'how to prevent identity theft online?': 'To prevent identity theft online, you should be cautious of phishing emails, fake websites, and online scams that may attempt to steal your personal information, use strong and unique passwords for online accounts, enable two-factor authentication whenever possible, monitor your financial accounts and credit reports regularly for suspicious activity, and promptly report any signs of identity theft or fraud to relevant authorities or financial institutions.'
+            };
+
+
+            promptsDropdownToggle.addEventListener('click', () => {
+                promptsDropdownToggle.parentNode.classList.toggle('open');
+            });
+
+            // Function to calculate Levenshtein distance between two strings
+            function levenshteinDistance(a, b) {
+                if (a.length === 0) return b.length;
+                if (b.length === 0) return a.length;
+
+                const matrix = [];
+                let i, j;
+
+                for (i = 0; i <= b.length; i++) {
+                    matrix[i] = [i];
+                }
+
+                for (j = 0; j <= a.length; j++) {
+                    matrix[0][j] = j;
+                }
+
+                for (i = 1; i <= b.length; i++) {
+                    for (j = 1; j <= a.length; j++) {
+                        if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                            matrix[i][j] = matrix[i - 1][j - 1];
+                        } else {
+                            matrix[i][j] = Math.min(
+                                matrix[i - 1][j - 1] + 1,
+                                Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1)
+                            );
+                        }
+                    }
+                }
+
+                return matrix[b.length][a.length];
+            }
+
+            // Function to find the most similar prompt
+            function findSimilarPrompt(input) {
+                let minDistance = Infinity;
+                let closestPrompt = '';
+
+                for (const prompt in prompts) {
+                    const distance = levenshteinDistance(input.toLowerCase(), prompt.toLowerCase());
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        closestPrompt = prompt;
+                    }
+                }
+
+                return closestPrompt;
+            }
+
+            function handleInput() {
+                const userInput = inputBox.value.trim().toLowerCase();
+
+                // Find exact match
+                if (userInput in prompts) {
+                    const response = prompts[userInput];
+                    addToHistory(userInput, response);
+                } else {
+                    let closestPrompt = '';
+                    let minDistance = Infinity;
+
+                    // Find closest prompt
+                    for (const prompt in prompts) {
+                        const distance = levenshteinDistance(userInput, prompt);
+                        if (distance < minDistance) {
+                            minDistance = distance;
+                            closestPrompt = prompt;
+                        }
+                    }
+
+                    // Check if closest match is within threshold distance
+                    if (minDistance <= 3 && closestPrompt !== '') { // Adjust threshold as needed
+                        const response = prompts[closestPrompt];
+                        addToHistory(userInput, response);
+                    } else {
+                        addToHistory(userInput, 'I cannot understand your input.');
+                    }
+                }
+
+                inputBox.value = '';
+                inputBox.focus();
+            }
+
+            function addToHistory(user, bot) {
+                const userMessage = document.createElement('div');
+                userMessage.className = 'user-message';
+                userMessage.textContent = user;
+                chatHistory.appendChild(userMessage);
+
+                const chatIsEmpty = chatHistory.childElementCount === 0;
+
+                // Add padding below chat history if it's not empty
+                if (!chatIsEmpty) {
+                    chatHistory.style.marginBottom = '20px';
+                }
+
+                setTimeout(() => { // Add a delay of 0.5 seconds before adding bot's response
+                    const botMessage = document.createElement('div');
+                    botMessage.className = 'bot-message';
+                    botMessage.textContent = bot;
+                    chatHistory.appendChild(botMessage);
+
+                    chatHistory.scrollTop = chatHistory.scrollHeight;
+                }, 500); // 0.5 second delay
+            }
+
+            submitBtn.addEventListener('click', handleInput);
+            inputBox.addEventListener('keyup', (event) => {
+                if (event.key === 'Enter') {
+                    handleInput();
+                }
+            });
+
+            darkModeToggle.addEventListener('change', () => {
+                body.classList.toggle('dark-mode');
+                container.classList.toggle('dark-mode');
+                const userMessages = document.querySelectorAll('.user-message');
+                userMessages.forEach(message => message.classList.toggle('dark-mode'));
+                const botMessages = document.querySelectorAll('.bot-message');
+                botMessages.forEach(message => message.classList.toggle('dark-mode'));
+                inputBox.classList.toggle('dark-mode');
+            });
+
+            settingsPanel.addEventListener('click', () => {
+                settingsPanel.classList.toggle('open');
+            });
+
+            // Populate the prompts list
+            for (const prompt in prompts) {
+                const li = document.createElement('li');
+                li.textContent = prompt;
+                li.addEventListener('click', () => {
+                    inputBox.value = prompt;
+                    inputBox.focus();
+                    promptsDropdownToggle.parentNode.classList.remove('open');
+                });
+                promptsList.appendChild(li);
+            };
+        });
+    </script>
